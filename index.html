@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detecting AI Edits in Human Text</title>
+<meta name="description" content="STAT 236 project: detecting a few AI-edited sentences in human documents with Higher Criticism on conformal p-values.">
+<style>
+:root {
+  color-scheme: light;
+  --surface: #fcfcfb; --surface-2: #f3f2ef; --border: #e2e1dc;
+  --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #85837d; --grid: #e8e7e3;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --human: #c9c7c0; --edit: #eb6834;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface: #1a1a19; --surface-2: #242423; --border: #3a3a38;
+    --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8e8d86; --grid: #33332f;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --human: #55544f; --edit: #d95926;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #1a1a19; --surface-2: #242423; --border: #3a3a38;
+  --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8e8d86; --grid: #33332f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+  --human: #55544f; --edit: #d95926;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--surface); color: var(--ink);
+  font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 0 16px 64px; }
+header { padding: 56px 0 24px; }
+h1 { font-size: 2.2rem; line-height: 1.15; margin: 0 0 12px; letter-spacing: -0.01em; }
+h2 { font-size: 1.45rem; margin: 56px 0 8px; }
+h3 { font-size: 1.05rem; margin: 28px 0 6px; }
+p { margin: 0 0 14px; }
+.lede { font-size: 1.15rem; color: var(--ink-2); }
+.authors { color: var(--ink-2); margin: 0 0 18px; }
+.links a, a { color: var(--s1); }
+.links { display: flex; gap: 18px; flex-wrap: wrap; font-weight: 600; }
+.muted { color: var(--ink-2); }
+.small { font-size: 0.88rem; }
+.card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin: 18px 0; }
+.key { border-left: 4px solid var(--s1); }
+/* stat tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 18px 0; }
+.tile { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.tile .num { font-size: 1.9rem; font-weight: 700; line-height: 1.1; }
+.tile .lab { color: var(--ink-2); font-size: 0.9rem; }
+/* pipeline */
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; }
+.step { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.step b { display: block; margin-bottom: 4px; }
+.step .n { color: var(--ink-3); font-weight: 700; font-size: 0.85rem; }
+/* demo */
+.doc { display: grid; gap: 7px; margin: 14px 0; }
+.line { height: 12px; border-radius: 6px; background: var(--human); transition: background .25s; }
+.line.ai { background: var(--edit); }
+.controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+input[type=range] { flex: 1 1 220px; accent-color: var(--s1); }
+button { font: inherit; font-size: 0.9rem; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--ink); cursor: pointer; }
+.meter { height: 14px; background: var(--grid); border-radius: 7px; overflow: hidden; position: relative; }
+.meter .fill { height: 100%; background: var(--s1); border-radius: 7px; transition: width .3s; }
+.meter .null { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink-2); }
+.example { font-size: 0.97rem; }
+.example .h { color: var(--ink-2); }
+.example mark { background: none; color: var(--edit); font-weight: 600; }
+/* charts */
+.chart { width: 100%; height: auto; display: block; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.88rem; color: var(--ink-2); margin: 6px 0 2px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.sw.line-sw { height: 3px; border-radius: 2px; vertical-align: 3px; width: 16px; }
+.sw.dash { height: 0; border-top: 2px dashed var(--ink-2); background: none; width: 16px; vertical-align: 3px; border-radius: 0; }
+#tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--surface); font-size: 0.82rem;
+  padding: 6px 9px; border-radius: 6px; opacity: 0; transition: opacity .1s; z-index: 10; max-width: 260px; }
+details { margin: 6px 0 0; font-size: 0.88rem; color: var(--ink-2); }
+summary { cursor: pointer; }
+table { border-collapse: collapse; width: 100%; font-size: 0.86rem; margin-top: 8px; }
+th, td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--border); }
+th:first-child, td:first-child { text-align: left; }
+figure { margin: 18px 0; }
+figure img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border); background: #fff; }
+figcaption { font-size: 0.88rem; color: var(--ink-2); margin-top: 8px; }
+footer { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--ink-2); font-size: 0.9rem; }
+.theme-toggle { position: fixed; top: 12px; right: 12px; }
+@media (max-width: 560px) { h1 { font-size: 1.75rem; } body { font-size: 16px; } }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="theme" aria-label="Toggle dark mode">◐</button>
+<div id="tip" role="tooltip"></div>
+<main>
+
+<header>
+  <h1>Detecting AI Edits in Human Text</h1>
+  <p class="authors">Ege Çakar, Henry Rui Huang, Duy Thuc Nguyen · STAT 236, Harvard University, Fall 2026</p>
+  <p class="lede">Most AI-assisted writing is a human draft with a few sentences polished by a model. We treat those
+    edited sentences as a <b>sparse signal</b> hidden among human ones, and test each document with
+    <b>Higher Criticism</b> on per-sentence p-values that are exactly valid for any detector.</p>
+  <div class="links"><a href="assets/report.pdf">Read the report (PDF)</a><a href="#results">Jump to results</a></div>
+</header>
+
+<div class="tiles">
+  <div class="tile"><div class="num">38.6%</div><div class="lab">of edited sentences caught at 1% false positives (best released detector: 9.4%)</div></div>
+  <div class="tile"><div class="num">92%</div><div class="lab">of documents flagged when most sentences are edited</div></div>
+  <div class="tile"><div class="num">0.045</div><div class="lab">false-positive rate on human documents, at a 0.05 target</div></div>
+</div>
+
+<h2>The problem</h2>
+<p>A student asks a chatbot to fix one awkward sentence; a reviewer polishes a paragraph. The document stays mostly
+human. Detectors built for fully generated text dilute a few edits in a long document, and a single edited sentence
+carries little evidence on its own. The question is when the evidence from a few weak sentences adds up.</p>
+
+<div class="card example">
+  <p class="h"><b>Human:</b> The goal of this work is clearly formulated by posing the proper research questions.</p>
+  <p style="margin:0"><b>AI-edited (GPT-6 Luna):</b> The goal of this work is clearly <mark>articulated through well-formulated</mark> research questions.</p>
+  <p class="small muted" style="margin:8px 0 0">One of 2 million in-context edits in our corpus: 36% of the words changed.</p>
+</div>
+
+<h3>Try it: how sparse can the edits be?</h3>
+<p class="muted small">A 16-sentence document. Slide to change how many sentences an AI edited; the bar shows how often our
+detector + Higher Criticism flags such documents (measured on real test documents).</p>
+<div class="card">
+  <div class="controls">
+    <label for="theta" class="small"><b>Sparsity θ</b></label>
+    <input id="theta" type="range" min="0" max="4" step="1" value="2" aria-label="sparsity theta">
+    <button id="reshuffle" type="button">Re-draw edits</button>
+  </div>
+  <p class="small" id="demo-text" style="margin:10px 0 0"></p>
+  <div class="doc" id="doc" aria-hidden="true"></div>
+  <div class="small" style="display:flex;justify-content:space-between"><span>Documents flagged</span><b id="demo-rate"></b></div>
+  <div class="meter" aria-hidden="true"><div class="fill" id="demo-fill"></div><div class="null" id="demo-null"></div></div>
+  <p class="small muted" style="margin:8px 0 0">Black tick: 5.3%, the rate on unedited human documents. Ensemble
+    detector, windows of 16 consecutive sentences from test documents.</p>
+</div>
+
+<h2>How it works</h2>
+<div class="steps">
+  <div class="step"><span class="n">1</span><b>Score each sentence</b>A detector fine-tuned on 1.08M edits gives every
+    sentence an AI-likeness score, computed from the sentence alone.</div>
+  <div class="step"><span class="n">2</span><b>Turn scores into p-values</b>Rank the score among held-out
+    <i>human</i> sentences of the same source and length. For a human sentence this p-value is exactly uniform, for any
+    detector.</div>
+  <div class="step"><span class="n">3</span><b>Combine with Higher Criticism</b>HC asks whether a document has more
+    small p-values than chance allows, scanning every threshold at once. Flag the document if HC exceeds its
+    5% cutoff for human documents.</div>
+</div>
+<div class="card key">
+  <b>The twist: sentences of one document are correlated.</b> They share an author and a topic, so their scores move
+  together, and the textbook cutoffs (which assume independent sentences) flag too many human documents. We estimate the
+  correlation per source on held-out human documents and simulate the cutoffs under it. For a sum of n sentence
+  scores with correlation ρ, the variance is 1 + (n − 1)ρ instead of 1.
+</div>
+
+<h2 id="results">Results</h2>
+
+<h3>1 · Sentence level: fine-tuning on edits matters most</h3>
+<p class="muted small">Share of edited test sentences detected at a 1% false-positive rate. Qwen 3.5 is a held-out
+editor that no detector we trained ever saw.</p>
+<div class="legend"><span><span class="sw" style="background:var(--s1)"></span>Training editors</span><span><span class="sw" style="background:var(--s2)"></span>Held-out editor (Qwen)</span><span><span class="sw dash"></span>1%: chance</span></div>
+<svg class="chart" id="c-sentence" role="img" aria-label="Bar chart of sentence-level detection rates"></svg>
+<details><summary>Data table</summary><div id="t-sentence"></div></details>
+
+<h3>2 · Correcting for correlation restores the false-positive rate</h3>
+<p class="muted small">How often HC flags one of 1,301 fully human test documents (target: 5%), with textbook
+independent-sentence cutoffs and with our correlated cutoffs.</p>
+<div class="legend"><span><span class="sw" style="background:var(--s2)"></span>Independent cutoffs</span><span><span class="sw" style="background:var(--s1)"></span>Correlated cutoffs</span><span><span class="sw dash"></span>5% target</span></div>
+<svg class="chart" id="c-type1" role="img" aria-label="Bar chart of false-positive rates on human documents"></svg>
+<details><summary>Data table</summary><div id="t-type1"></div></details>
+
+<h3>3 · Document level: detection fades as edits get sparser</h3>
+<p class="muted small">Share of edited whole test documents (16+ sentences) flagged, as edits become rarer. At θ = 0.1
+about 65% of sentences are edited; at θ = 0.9 a 16-sentence document has one.</p>
+<div class="legend" id="lg-power"></div>
+<svg class="chart" id="c-power" role="img" aria-label="Line chart of document detection rate against sparsity"></svg>
+<details><summary>Data table</summary><div id="t-power"></div></details>
+
+<h3>4 · Against the theory</h3>
+<figure>
+  <img src="assets/phase_ensemble.png" alt="Phase diagram: Gaussian simulation next to real documents placed by sparsity and signal strength" loading="lazy">
+  <figcaption>Left: Higher Criticism's power in the textbook rare/weak Gaussian model, with the theoretical detection,
+    almost-full-recovery and exact-recovery boundaries (Donoho–Jin). Right: real test documents placed by their sparsity
+    θ and effective signal strength r; colour is the share flagged. Documents with strong edits are flagged almost always;
+    near and below the detection boundary they mostly are not, as in the Gaussian model.</figcaption>
+</figure>
+
+<h3>5 · Finding and counting the edits is harder than detecting them</h3>
+<div class="tiles">
+  <div class="tile"><div class="num">4–28%</div><div class="lab">of documents where Benjamini–Hochberg finds exactly the edited sentences</div></div>
+  <div class="tile"><div class="num">0.62</div><div class="lab">estimated edited fraction when the truth is 0.65 (dense edits)</div></div>
+  <div class="tile"><div class="num">97–100%</div><div class="lab">coverage of our 95% lower confidence bound on the edited fraction</div></div>
+</div>
+
+<h2>In progress</h2>
+<h3>Human, fully AI, or AI-edited?</h3>
+<p>A second test with the opposite null ("every sentence is AI-generated") separates fully generated documents from
+edited human ones. Share of documents given the correct label:</p>
+<div class="tiles">
+  <div class="tile"><div class="num">96%</div><div class="lab">human documents labelled human</div></div>
+  <div class="tile"><div class="num">95%</div><div class="lab">fully generated documents labelled fully AI (87% for a held-out generator)</div></div>
+  <div class="tile"><div class="num">87%</div><div class="lab">densely edited documents labelled AI-edited</div></div>
+</div>
+<h3>Does AI-edited text change what a language model learns?</h3>
+<p>Small language models pretrained on AI-edited copies of the corpus reach nearly the same perplexity as on human
+text, but learn to <b>prefer the AI-edited version</b> of a sentence over its human original
+(Δ = +0.38 nats per token vs. −0.03 for repeated human text). Down-weighting edited sentences by how much they were
+changed removes only about 10% of that shift.</p>
+
+<footer>
+  <p>Data: 313,249 human sentences from eight sources written in 2020 or earlier (web pages, papers, school and learner
+    essays, news, peer reviews, emails, fiction), each edited by six language models under two prompts.
+    Full methods, tables and references in the <a href="assets/report.pdf">report</a>.</p>
+  <p>STAT 236 · Fall 2026</p>
+</footer>
+</main>
+
+<script>
+// ---------------- data (from the report's tables) ----------------
+const SENTENCE = [ // TPR at 1% FPR: training editors, held-out Qwen
+  ["Ensemble (ours)", 0.386, 0.362], ["OLMo-3-32B (ours)", 0.377, 0.352], ["DeBERTa-v3-large (ours)", 0.341, 0.316],
+  ["GPTTrace v8s", 0.094, 0.047], ["EditLens", 0.087, 0.098], ["desklib", 0.022, 0.024],
+  ["Binoculars (zero-shot)", 0.021, 0.018], ["Fast-DetectGPT (zero-shot)", 0.018, 0.015]];
+const TYPE1 = [ // HC type I error: independent cutoffs, correlated cutoffs
+  ["Ensemble", 0.085, 0.045], ["OLMo-3-32B", 0.095, 0.054], ["Llama-3.1-8B", 0.083, 0.048], ["OLMo-3-7B", 0.088, 0.048],
+  ["DeBERTa-v3-large", 0.088, 0.041], ["EditLens", 0.104, 0.058], ["GPTTrace v8s", 0.069, 0.049],
+  ["desklib", 0.066, 0.053], ["GPTTrace Ettin-150M", 0.084, 0.058]];
+const THETAS = [0.1, 0.3, 0.5, 0.7, 0.9];
+const POWER = [ // HC rejection rate, training editors, whole documents
+  {name: "Ensemble (ours)", color: "--s1", v: [0.92, 0.78, 0.59, 0.41, 0.22]},
+  {name: "EditLens, whole document", color: "--s2", v: [0.53, 0.25, 0.13, 0.08, 0.06]},
+  {name: "EditLens + HC", color: "--s3", v: [0.46, 0.28, 0.17, 0.12, 0.08]},
+  {name: "desklib + HC", color: "--s4", v: [0.14, 0.09, 0.07, 0.06, 0.06]}];
+const WINDOW16 = {null: 0.053, rate: [0.89, 0.77, 0.61, 0.42, 0.27]}; // ensemble, 16-sentence windows
+
+const NS = "http://www.w3.org/2000/svg";
+const tip = document.getElementById("tip");
+const pct = x => (100 * x).toFixed(1).replace(/\.0$/, "") + "%";
+function el(name, attrs, parent) {
+  const e = document.createElementNS(NS, name);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function text(parent, x, y, s, attrs = {}) {
+  const t = el("text", {x, y, "font-size": 13, style: "fill:var(--ink-2)", ...attrs}, parent);
+  t.textContent = s; return t;
+}
+function showTip(evt, html) {
+  tip.innerHTML = html; tip.style.opacity = 1;
+  const x = Math.min(evt.clientX + 14, window.innerWidth - tip.offsetWidth - 8);
+  tip.style.left = x + "px"; tip.style.top = (evt.clientY + 14) + "px";
+}
+function hideTip() { tip.style.opacity = 0; }
+function table(id, head, rows) {
+  document.getElementById(id).innerHTML = "<table><tr>" + head.map(h => `<th>${h}</th>`).join("") + "</tr>" +
+    rows.map(r => "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>").join("") + "</table>";
+}
+
+// Grouped horizontal bars: rows = [label, a, b]; colors for a, b; ref = dashed reference value.
+function hbars(id, rows, colors, names, xmax, ref, refLabel) {
+  const svg = document.getElementById(id);
+  const W = 640, L = 190, R = 52, rowH = 34, top = 6, H = top + rows.length * rowH + 26;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const x = v => L + (W - L - R) * v / xmax;
+  for (let t = 0; t <= xmax + 1e-9; t += xmax / 4) {           // recessive grid
+    el("line", {x1: x(t), x2: x(t), y1: top, y2: H - 22, style: "stroke:var(--grid)", "stroke-width": 1}, svg);
+    text(svg, x(t), H - 6, pct(t), {"text-anchor": "middle", "font-size": 11, style: "fill:var(--ink-3)"});
+  }
+  rows.forEach((r, i) => {
+    const y0 = top + i * rowH;
+    text(svg, L - 10, y0 + rowH / 2 + 4, r[0], {"text-anchor": "end", style: "fill:var(--ink)"});
+    [r[1], r[2]].forEach((v, j) => {
+      const h = 11, y = y0 + 5 + j * (h + 2);
+      el("rect", {x: L, y, width: Math.max(x(v) - L, 1), height: h, rx: 3, style: `fill:var(${colors[j]})`}, svg);
+    });
+    text(svg, Math.max(x(r[1]), x(r[2])) + 6, y0 + rowH / 2 + 4, pct(r[1]), {"font-size": 12});
+    const hit = el("rect", {x: 0, y: y0, width: W, height: rowH, fill: "transparent"}, svg);
+    hit.addEventListener("mousemove", e => showTip(e, `<b>${r[0]}</b><br>${names[0]}: ${pct(r[1])}<br>${names[1]}: ${pct(r[2])}`));
+    hit.addEventListener("mouseleave", hideTip);
+  });
+  el("line", {x1: x(ref), x2: x(ref), y1: top, y2: H - 22, style: "stroke:var(--ink-2)", "stroke-width": 1.5,
+    "stroke-dasharray": "4 3"}, svg);
+}
+
+hbars("c-sentence", SENTENCE, ["--s1", "--s2"], ["Training editors", "Held-out Qwen"], 0.4, 0.01);
+table("t-sentence", ["Detector", "Training editors", "Held-out Qwen"], SENTENCE.map(r => [r[0], pct(r[1]), pct(r[2])]));
+hbars("c-type1", TYPE1, ["--s2", "--s1"], ["Independent cutoffs", "Correlated cutoffs"], 0.12, 0.05);
+table("t-type1", ["Detector", "Independent cutoffs", "Correlated cutoffs"], TYPE1.map(r => [r[0], pct(r[1]), pct(r[2])]));
+
+// Line chart: HC power against theta.
+(function power() {
+  const svg = document.getElementById("c-power");
+  const W = 640, H = 330, L = 48, R = 20, T = 12, B = 40;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const x = t => L + (W - L - R) * (t - 0.05) / 0.9, y = v => T + (H - T - B) * (1 - v);
+  for (let v = 0; v <= 1.0001; v += 0.25) {
+    el("line", {x1: L, x2: W - R, y1: y(v), y2: y(v), style: "stroke:var(--grid)"}, svg);
+    text(svg, L - 8, y(v) + 4, pct(v), {"text-anchor": "end", "font-size": 11, style: "fill:var(--ink-3)"});
+  }
+  THETAS.forEach(t => text(svg, x(t), H - B + 18, "θ = " + t, {"text-anchor": "middle", "font-size": 12}));
+  text(svg, L, H - 4, "← dense edits", {"font-size": 11, style: "fill:var(--ink-3)"});
+  text(svg, W - R, H - 4, "sparse edits →", {"text-anchor": "end", "font-size": 11, style: "fill:var(--ink-3)"});
+  el("line", {x1: L, x2: W - R, y1: y(0.05), y2: y(0.05), style: "stroke:var(--ink-2)", "stroke-width": 1.5,
+    "stroke-dasharray": "4 3"}, svg);
+  POWER.forEach(s => {
+    el("polyline", {points: s.v.map((v, i) => `${x(THETAS[i])},${y(v)}`).join(" "), fill: "none",
+      style: `stroke:var(${s.color})`, "stroke-width": 2.2, "stroke-linejoin": "round"}, svg);
+    s.v.forEach((v, i) => el("circle", {cx: x(THETAS[i]), cy: y(v), r: 4.5, style: `fill:var(${s.color});stroke:var(--surface)`,
+      "stroke-width": 2}, svg));
+  });
+  THETAS.forEach((t, i) => {     // one hover column per theta
+    const w = (W - L - R) / 5, hit = el("rect", {x: x(t) - w / 2, y: T, width: w, height: H - T - B, fill: "transparent"}, svg);
+    hit.addEventListener("mousemove", e => showTip(e, `<b>θ = ${t}</b><br>` +
+      POWER.map(s => `${s.name}: ${pct(s.v[i])}`).join("<br>") + "<br>Human documents: about 5%"));
+    hit.addEventListener("mouseleave", hideTip);
+  });
+  document.getElementById("lg-power").innerHTML = POWER.map(s =>
+    `<span><span class="sw line-sw" style="background:var(${s.color})"></span>${s.name}</span>`).join("") +
+    `<span><span class="sw dash"></span>5% (human documents)</span>`;
+  table("t-power", ["Detector", ...THETAS.map(t => "θ = " + t)], POWER.map(s => [s.name, ...s.v.map(pct)]));
+})();
+
+// Sparsity demo: a 16-sentence document.
+(function demo() {
+  const n = 16, doc = document.getElementById("doc"), slider = document.getElementById("theta");
+  const widths = Array.from({length: n}, (_, i) => 70 + ((i * 37) % 30));   // ragged line lengths
+  const lines = widths.map(w => { const d = document.createElement("div"); d.className = "line"; d.style.width = w + "%";
+    doc.appendChild(d); return d; });
+  document.getElementById("demo-null").style.left = (100 * WINDOW16.null) + "%";
+  let order = [...Array(n).keys()];
+  const shuffle = () => { for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; } };
+  function render() {
+    const k = +slider.value, t = THETAS[k], m = Math.round(Math.pow(n, 1 - t)), rate = WINDOW16.rate[k];
+    const chosen = new Set(order.slice(0, m));
+    lines.forEach((d, i) => d.classList.toggle("ai", chosen.has(i)));
+    document.getElementById("demo-text").innerHTML =
+      `θ = ${t}: <b>${m} of ${n}</b> sentences AI-edited (shown in orange)`;
+    document.getElementById("demo-rate").textContent = pct(rate);
+    document.getElementById("demo-fill").style.width = (100 * rate) + "%";
+  }
+  shuffle(); render();
+  slider.addEventListener("input", render);
+  document.getElementById("reshuffle").addEventListener("click", () => { shuffle(); render(); });
+})();
+
+// Theme toggle (remembered per viewer when storage is available).
+(function theme() {
+  const root = document.documentElement, btn = document.getElementById("theme");
+  try { const s = localStorage.getItem("theme"); if (s) root.dataset.theme = s; } catch (e) {}
+  btn.addEventListener("click", () => {
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("theme", root.dataset.theme); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

@@ -9,7 +9,7 @@
 :root {
   color-scheme: light;
   --bg: #eef1f6;
-  --glass: rgba(255, 255, 255, 0.62); --glass-strong: rgba(255, 255, 255, 0.78);
+  --glass: rgba(255, 255, 255, 0.74); --glass-strong: rgba(255, 255, 255, 0.86); --spec: rgba(255, 255, 255, 0.55); --rim: 0.95;
   --glass-border: rgba(255, 255, 255, 0.85); --glass-shadow: 0 8px 32px rgba(31, 45, 80, 0.10);
   --surface: #f7f8fb; --border: rgba(20, 30, 60, 0.10);
   --ink: #0b0b0b; --ink-2: #4b4a47; --ink-3: #7c7a74; --grid: rgba(20, 30, 60, 0.10);
@@ -22,7 +22,7 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
     --bg: #0e1116;
-    --glass: rgba(255, 255, 255, 0.06); --glass-strong: rgba(255, 255, 255, 0.10);
+    --glass: rgba(26, 30, 38, 0.72); --glass-strong: rgba(40, 45, 56, 0.80); --spec: rgba(255, 255, 255, 0.10); --rim: 0.55;
     --glass-border: rgba(255, 255, 255, 0.14); --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
     --surface: #1b1f27; --border: rgba(255, 255, 255, 0.12);
     --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8e8d86; --grid: rgba(255, 255, 255, 0.10);
@@ -35,7 +35,7 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
   --bg: #0e1116;
-  --glass: rgba(255, 255, 255, 0.06); --glass-strong: rgba(255, 255, 255, 0.10);
+  --glass: rgba(26, 30, 38, 0.72); --glass-strong: rgba(40, 45, 56, 0.80); --spec: rgba(255, 255, 255, 0.10); --rim: 0.55;
   --glass-border: rgba(255, 255, 255, 0.14); --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
   --surface: #1b1f27; --border: rgba(255, 255, 255, 0.12);
   --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8e8d86; --grid: rgba(255, 255, 255, 0.10);
@@ -63,10 +63,24 @@ a { color: var(--s1); }
 .muted { color: var(--ink-2); }
 .small { font-size: 0.88rem; }
 /* glass */
-.glass, .card, .tile, .step, .panel, figure, details table {
-  background: var(--glass); border: 1px solid var(--glass-border); border-radius: 18px;
+.glass, .card, .tile, .step, .panel, figure {
+  position: relative; background: var(--glass); border: 0; border-radius: 18px;
   box-shadow: var(--glass-shadow); -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%); }
+/* thin rim with a faint spectrum, like light on a soap bubble */
+.glass::before, .card::before, .tile::before, .step::before, .panel::before, figure::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none; opacity: var(--rim);
+  background: conic-gradient(from 210deg at 28% 22%, rgba(255,255,255,.95), rgba(255,176,196,.55), rgba(255,232,160,.5),
+    rgba(168,236,200,.5), rgba(160,200,255,.6), rgba(208,176,255,.5), rgba(255,255,255,.95));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+/* soft reflection of light from the top left */
+.glass::after, .card::after, .tile::after, .step::after, .panel::after, figure::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(160deg, var(--spec) 0%, transparent 32%),
+    radial-gradient(90% 50% at 100% 100%, rgba(170, 205, 255, 0.10), transparent 70%); }
+details table { background: var(--glass-strong); border-radius: 12px; }
 .card, .panel { padding: 20px 22px; margin: 18px 0; }
+.card > *, .panel > *, .tile > *, .step > *, figure > *, footer > * { position: relative; z-index: 1; }
 .key { border-left: 4px solid var(--s1); }
 /* hero */
 header { padding: 64px 0 8px; }
@@ -80,15 +94,19 @@ header { padding: 64px 0 8px; }
   background: var(--glass-strong); border: 1px solid var(--glass-border); color: var(--ink); box-shadow: var(--glass-shadow); }
 .btn.primary { background: var(--s1); color: #fff; border-color: transparent; }
 /* the lens */
-.stage { position: relative; margin: 28px 0 6px; padding: 26px 28px; cursor: none; touch-action: pan-y;
+.stage { position: relative; margin: 28px 0 6px; padding: 0; cursor: none; touch-action: pan-y;
   user-select: none; -webkit-user-select: none; overflow: hidden; }
-.stage .layer { margin: 0; font-size: 1.12rem; line-height: 1.75; }
-.stage .reveal { position: absolute; inset: 0; padding: 26px 28px; pointer-events: none;
+.stage .layer { margin: 0; padding: 26px 28px; font-size: 1.12rem; line-height: 1.75; }
+.stage .base { position: relative; z-index: 1;
+  -webkit-mask: radial-gradient(circle var(--r, 78px) at var(--x, 30%) var(--y, 40%), transparent calc(var(--r, 78px) - 1px), #000 var(--r, 78px));
+  mask: radial-gradient(circle var(--r, 78px) at var(--x, 30%) var(--y, 40%), transparent calc(var(--r, 78px) - 1px), #000 var(--r, 78px)); }
+.stage .reveal { position: absolute; inset: 0; z-index: 1; pointer-events: none;
   transform-origin: var(--x, 30%) var(--y, 40%); transform: scale(var(--zoom, 1.18));
   clip-path: circle(calc(var(--r, 78px) / var(--zoom, 1.18)) at var(--x, 30%) var(--y, 40%)); }
 .stage .reveal mark { background: var(--mark); color: inherit; border-radius: 4px; box-shadow: 0 2px 0 var(--edit); }
 .lens { position: absolute; width: calc(2 * var(--r, 78px)); height: calc(2 * var(--r, 78px)); border-radius: 50%;
-  left: calc(var(--x, 30%) - var(--r, 78px)); top: calc(var(--y, 40%) - var(--r, 78px)); pointer-events: none;
+  left: calc(var(--x, 30%) - var(--r, 78px)); top: calc(var(--y, 40%) - var(--r, 78px)); pointer-events: none; z-index: 2;
+  background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.22), rgba(255,255,255,.04) 55%, rgba(160,200,255,.06));
   border: 3px solid var(--lens-ring);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18), inset 0 0 0 1px rgba(0, 0, 0, 0.06), inset 0 -10px 24px rgba(255, 255, 255, 0.25); }
 .lens::after { content: ""; position: absolute; width: 14px; height: 54px; border-radius: 7px; background: var(--ink-2);
@@ -138,14 +156,21 @@ figure img { width: 100%; height: auto; border-radius: 10px; background: #fff; d
 figcaption { font-size: 0.88rem; color: var(--ink-2); margin-top: 10px; }
 footer { margin-top: 64px; padding: 18px 22px; color: var(--ink-2); font-size: 0.9rem; }
 .theme-toggle { position: fixed; top: 12px; right: 12px; z-index: 5; width: 40px; height: 40px; padding: 0; }
-@media (max-width: 560px) { h1 { font-size: 1.9rem; } body { font-size: 16px; } .stage { padding: 18px; }
-  .stage .reveal { padding: 18px; } .stage .layer { font-size: 1.02rem; } }
+@media (max-width: 560px) { h1 { font-size: 1.9rem; } body { font-size: 16px; } .stage .layer { padding: 18px; } .stage .layer { font-size: 1.02rem; } }
+.margin-anim { position: fixed; top: 50%; transform: translateY(-50%); width: 168px; padding: 14px 14px 10px; z-index: 0; display: none; }
+.margin-anim canvas { width: 140px; height: 360px; display: block; position: relative; z-index: 1; }
+.margin-anim .cap { position: relative; z-index: 1; font-size: 0.72rem; color: var(--ink-3); text-align: center; margin-top: 6px; }
+.margin-anim.left { left: max(12px, calc(50% - 450px - 196px)); }
+.margin-anim.right { right: max(12px, calc(50% - 450px - 196px)); }
+@media (min-width: 1270px) { .margin-anim { display: block; } }
 @media (prefers-reduced-motion: reduce) { .line, .meter .fill { transition: none; } }
 </style>
 </head>
 <body>
 <button class="theme-toggle" id="theme" aria-label="Toggle dark mode">◐</button>
 <div id="tip" role="tooltip"></div>
+<div class="margin-anim left glass" aria-hidden="true"><canvas data-seed="7"></canvas><div class="cap">generate → edit → hide</div></div>
+<div class="margin-anim right glass" aria-hidden="true"><canvas data-seed="23"></canvas><div class="cap">deleted · inserted · replaced</div></div>
 <main>
 
 <header>
@@ -462,6 +487,83 @@ table("t-type1", ["Detector", "Independent cutoffs", "Correlated cutoffs"], TYPE
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
+})();
+
+// Margin animation: each bar is a word. Words are generated one at a time, a few are then deleted (red),
+// inserted (green) or replaced (amber), and the colours fade so the edits can no longer be seen.
+// The timeline plays forward, then backward (boomerang), and repeats.
+(function marginAnim() {
+  const canvases = [...document.querySelectorAll(".margin-anim canvas")];
+  if (!canvases.length) return;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const W = 140, H = 360, LINES = 15, LH = 24, BAR = 9, GAP = 6, X0 = 2;
+  const COL = {del: [227, 73, 72], ins: [27, 175, 122], rep: [237, 161, 0]};
+  const rnd = seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const clamp = v => Math.max(0, Math.min(1, v)), ease = v => v * v * (3 - 2 * v);
+  function build(seed) {
+    const r = rnd(seed), lines = [];
+    for (let l = 0; l < LINES; l++) {
+      const toks = []; let x = 0;
+      while (true) { const w = 8 + Math.floor(r() * 26); if (x + w > W - 10 - X0) break; toks.push({w, w0: w, w1: w}); x += w + GAP; }
+      if (l === LINES - 1) toks.length = Math.max(2, Math.floor(toks.length / 2));
+      lines.push(toks);
+    }
+    let k = 0; lines.forEach(t => t.forEach(tok => { tok.a = k++ * 0.055; }));
+    const TB = k * 0.055 + 0.6, events = ["del", "ins", "rep", "rep", "del", "ins"];
+    const used = new Set();
+    events.forEach((type, j) => {
+      let l; do { l = 1 + Math.floor(r() * (LINES - 2)); } while (used.has(l)); used.add(l);
+      const toks = lines[l], i = Math.floor(r() * toks.length), t = TB + j * 0.55;
+      if (type === "ins") { const w = 10 + Math.floor(r() * 18); toks.splice(i, 0, {w, w0: 0, w1: w, a: -1, type, t}); }
+      else { const tok = toks[i]; tok.type = type; tok.t = t; if (type === "rep") tok.w1 = 8 + Math.floor(r() * 26); if (type === "del") tok.w1 = 0; }
+    });
+    const TF = TB + events.length * 0.55 + 0.8;
+    return {lines, TF, T: TF + 2.6};
+  }
+  const scenes = canvases.map(c => {
+    const dpr = window.devicePixelRatio || 1; c.width = W * dpr; c.height = H * dpr;
+    const ctx = c.getContext("2d"); ctx.scale(dpr, dpr);
+    return {ctx, sc: build(+c.dataset.seed || 1)};
+  });
+  function neutral() {
+    const dark = document.documentElement.dataset.theme === "dark" ||
+      (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+    return dark ? [255, 255, 255, 0.42] : [20, 30, 60, 0.30];
+  }
+  function draw({ctx, sc}, tau) {
+    const n = neutral(); ctx.clearRect(0, 0, W, H);
+    const fade = 1 - ease(clamp((tau - sc.TF) / 1.4));            // edit colours vanish
+    let front = null;
+    sc.lines.forEach((toks, l) => {
+      let x = X0; const y = 8 + l * LH;
+      toks.forEach(tok => {
+        let gen = tok.a < 0 ? 1 : ease(clamp((tau - tok.a) / 0.18)), w = tok.w0, col = null;
+        if (tok.type) {
+          const e = ease(clamp((tau - tok.t) / 0.45));
+          if (tok.type === "ins") { gen = e > 0 ? 1 : 0; }
+          w = tok.w0 + (tok.w1 - tok.w0) * e;
+          if (tau >= tok.t) col = COL[tok.type];
+        }
+        const ww = w * gen; if (ww < 0.5) return;
+        let c = n.slice(0, 3), a = n[3] * (tok.a < 0 ? 1 : gen);
+        if (col) { const k = fade; c = c.map((v, i) => v + (col[i] - v) * k); a = a + (0.95 - a) * k; }
+        ctx.fillStyle = `rgba(${c.map(Math.round).join(",")},${a.toFixed(3)})`;
+        ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, ww, BAR, 4) : ctx.rect(x, y, ww, BAR); ctx.fill();
+        if (tok.a >= 0 && tau >= tok.a && tau < tok.a + 0.25) front = [x + ww + 2, y];
+        x += ww + GAP * Math.min(1, ww / 6);
+      });
+    });
+    if (front && tau < sc.TF - 1) { ctx.fillStyle = "rgba(42,120,214,0.9)"; ctx.fillRect(front[0], front[1] - 2, 2, BAR + 4); }  // generation cursor
+  }
+  if (reduce) { scenes.forEach(s => draw(s, s.sc.T)); return; }
+  const t0 = performance.now();
+  (function frame(now) {
+    scenes.forEach((s, i) => {
+      const T = s.sc.T, u = ((now - t0) / 1000 + i * 1.7) % (2 * T);
+      draw(s, u < T ? u : 2 * T - u);                               // forward, then backward
+    });
+    requestAnimationFrame(frame);
+  })(t0);
 })();
 </script>
 </body>

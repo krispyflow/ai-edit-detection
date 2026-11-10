@@ -157,10 +157,10 @@ figcaption { font-size: 0.88rem; color: var(--ink-2); margin-top: 10px; }
 footer { margin-top: 64px; padding: 18px 22px; color: var(--ink-2); font-size: 0.9rem; }
 .theme-toggle { position: fixed; top: 12px; right: 12px; z-index: 5; width: 40px; height: 40px; padding: 0; }
 @media (max-width: 560px) { h1 { font-size: 1.9rem; } body { font-size: 16px; } .stage .layer { padding: 18px; } .stage .layer { font-size: 1.02rem; } }
-.margin-anim { position: fixed; top: 50%; transform: translateY(-50%); width: 168px; padding: 14px; z-index: 0; display: none; pointer-events: none; }
-.margin-anim canvas { width: 140px; height: 360px; display: block; position: relative; z-index: 1; }
-.margin-anim.left { left: max(12px, calc(50% - 450px - 196px)); }
-@media (min-width: 1270px) { .margin-anim { display: block; } }
+.margin-anim { position: fixed; top: 50%; transform: translateY(-50%); width: 224px; padding: 12px; z-index: 0; display: none; pointer-events: none; }
+.margin-anim canvas { width: 200px; height: 520px; max-height: 86vh; display: block; position: relative; z-index: 1; }
+.margin-anim.left { left: max(12px, calc(50% - 450px - 246px)); }
+@media (min-width: 1380px) { .margin-anim { display: block; } }
 @media (prefers-reduced-motion: reduce) { .line, .meter .fill { transition: none; } }
 </style>
 </head>
@@ -487,21 +487,21 @@ table("t-type1", ["Detector", "Independent cutoffs", "Correlated cutoffs"], TYPE
 })();
 
 // Margin animation: each bar is a word. Words are generated one at a time, a few are then deleted (red),
-// inserted (green) or replaced (amber), and the colours fade so the edits can no longer be seen.
+// inserted (light purple) or replaced (amber), and the colours fade so the edits can no longer be seen.
 // The timeline plays forward, then backward (boomerang), and repeats.
 (function marginAnim() {
   const canvases = [...document.querySelectorAll(".margin-anim canvas")];
   if (!canvases.length) return;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const W = 140, H = 360, LINES = 15, LH = 24, BAR = 9, GAP = 6, X0 = 2;
-  const COL = {del: [227, 73, 72], ins: [27, 175, 122], rep: [237, 161, 0]};
+  const W = 200, H = 520, LINES = 15, LH = 33, BAR = 12, GAP = 10, X0 = 2;
+  const COL = {del: [227, 73, 72], ins: [176, 150, 245], rep: [237, 161, 0]};   // red, light purple, amber
   const rnd = seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const clamp = v => Math.max(0, Math.min(1, v)), ease = v => v * v * (3 - 2 * v);
   function build(seed) {
     const r = rnd(seed), lines = [];
     for (let l = 0; l < LINES; l++) {
       const toks = []; let x = 0;
-      while (true) { const w = 8 + Math.floor(r() * 26); if (x + w > W - 10 - X0) break; toks.push({w, w0: w, w1: w}); x += w + GAP; }
+      while (true) { const w = 12 + Math.floor(r() * 34); if (x + w > W - 10 - X0) break; toks.push({w, w0: w, w1: w}); x += w + GAP; }
       if (l === LINES - 1) toks.length = Math.max(2, Math.floor(toks.length / 2));
       lines.push(toks);
     }
@@ -511,8 +511,8 @@ table("t-type1", ["Detector", "Independent cutoffs", "Correlated cutoffs"], TYPE
     events.forEach((type, j) => {
       let l; do { l = 1 + Math.floor(r() * (LINES - 2)); } while (used.has(l)); used.add(l);
       const toks = lines[l], i = Math.floor(r() * toks.length), t = TB + j * 0.55;
-      if (type === "ins") { const w = 10 + Math.floor(r() * 18); toks.splice(i, 0, {w, w0: 0, w1: w, a: -1, type, t}); }
-      else { const tok = toks[i]; tok.type = type; tok.t = t; if (type === "rep") tok.w1 = 8 + Math.floor(r() * 26); if (type === "del") tok.w1 = 0; }
+      if (type === "ins") { const w = 14 + Math.floor(r() * 26); toks.splice(i, 0, {w, w0: 0, w1: w, a: -1, type, t}); }
+      else { const tok = toks[i]; tok.type = type; tok.t = t; if (type === "rep") tok.w1 = 12 + Math.floor(r() * 34); if (type === "del") tok.w1 = 0; }
     });
     const TF = TB + events.length * 0.55 + 0.8;
     return {lines, TF, T: TF + 2.6};
@@ -525,7 +525,7 @@ table("t-type1", ["Detector", "Independent cutoffs", "Correlated cutoffs"], TYPE
   function neutral() {
     const dark = document.documentElement.dataset.theme === "dark" ||
       (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
-    return dark ? [255, 255, 255, 0.62] : [20, 30, 60, 0.55];
+    return dark ? [255, 255, 255, 0.24] : [20, 30, 60, 0.16];
   }
   function draw({ctx, sc}, tau) {
     const n = neutral(); ctx.clearRect(0, 0, W, H);

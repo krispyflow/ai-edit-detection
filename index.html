@@ -8,87 +8,139 @@
 <style>
 :root {
   color-scheme: light;
-  --surface: #fcfcfb; --surface-2: #f3f2ef; --border: #e2e1dc;
-  --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #85837d; --grid: #e8e7e3;
+  --bg: #eef1f6;
+  --glass: rgba(255, 255, 255, 0.62); --glass-strong: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.85); --glass-shadow: 0 8px 32px rgba(31, 45, 80, 0.10);
+  --surface: #f7f8fb; --border: rgba(20, 30, 60, 0.10);
+  --ink: #0b0b0b; --ink-2: #4b4a47; --ink-3: #7c7a74; --grid: rgba(20, 30, 60, 0.10);
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
-  --human: #c9c7c0; --edit: #eb6834;
+  --human: rgba(20, 30, 60, 0.16); --edit: #eb6834;
+  --blob1: rgba(42, 120, 214, 0.30); --blob2: rgba(235, 104, 52, 0.22); --blob3: rgba(27, 175, 122, 0.20);
+  --mark: rgba(235, 104, 52, 0.20); --lens-ring: rgba(255, 255, 255, 0.95);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --surface: #1a1a19; --surface-2: #242423; --border: #3a3a38;
-    --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8e8d86; --grid: #33332f;
+    --bg: #0e1116;
+    --glass: rgba(255, 255, 255, 0.06); --glass-strong: rgba(255, 255, 255, 0.10);
+    --glass-border: rgba(255, 255, 255, 0.14); --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    --surface: #1b1f27; --border: rgba(255, 255, 255, 0.12);
+    --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8e8d86; --grid: rgba(255, 255, 255, 0.10);
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
-    --human: #55544f; --edit: #d95926;
+    --human: rgba(255, 255, 255, 0.18); --edit: #d95926;
+    --blob1: rgba(57, 135, 229, 0.28); --blob2: rgba(217, 89, 38, 0.20); --blob3: rgba(25, 158, 112, 0.18);
+    --mark: rgba(217, 89, 38, 0.30); --lens-ring: rgba(255, 255, 255, 0.75);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --surface: #1a1a19; --surface-2: #242423; --border: #3a3a38;
-  --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8e8d86; --grid: #33332f;
+  --bg: #0e1116;
+  --glass: rgba(255, 255, 255, 0.06); --glass-strong: rgba(255, 255, 255, 0.10);
+  --glass-border: rgba(255, 255, 255, 0.14); --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --surface: #1b1f27; --border: rgba(255, 255, 255, 0.12);
+  --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8e8d86; --grid: rgba(255, 255, 255, 0.10);
   --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
-  --human: #55544f; --edit: #d95926;
+  --human: rgba(255, 255, 255, 0.18); --edit: #d95926;
+  --blob1: rgba(57, 135, 229, 0.28); --blob2: rgba(217, 89, 38, 0.20); --blob3: rgba(25, 158, 112, 0.18);
+  --mark: rgba(217, 89, 38, 0.30); --lens-ring: rgba(255, 255, 255, 0.75);
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--surface); color: var(--ink);
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--ink); min-height: 100vh;
   font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-main { max-width: 860px; margin: 0 auto; padding: 0 16px 64px; }
-header { padding: 56px 0 24px; }
-h1 { font-size: 2.2rem; line-height: 1.15; margin: 0 0 12px; letter-spacing: -0.01em; }
-h2 { font-size: 1.45rem; margin: 56px 0 8px; }
-h3 { font-size: 1.05rem; margin: 28px 0 6px; }
+/* soft light behind the glass */
+body::before { content: ""; position: fixed; inset: -10vmax; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(38vmax 38vmax at 12% 8%, var(--blob1), transparent 70%),
+    radial-gradient(34vmax 34vmax at 92% 22%, var(--blob2), transparent 70%),
+    radial-gradient(40vmax 40vmax at 50% 105%, var(--blob3), transparent 70%); }
+main { max-width: 900px; margin: 0 auto; padding: 0 16px 64px; }
+h1 { font-size: 2.6rem; line-height: 1.1; margin: 0 0 12px; letter-spacing: -0.02em; }
+h2 { font-size: 1.5rem; margin: 64px 0 10px; letter-spacing: -0.01em; }
+h3 { font-size: 1.08rem; margin: 30px 0 6px; }
 p { margin: 0 0 14px; }
-.lede { font-size: 1.15rem; color: var(--ink-2); }
-.authors { color: var(--ink-2); margin: 0 0 18px; }
-.links a, a { color: var(--s1); }
-.links { display: flex; gap: 18px; flex-wrap: wrap; font-weight: 600; }
+a { color: var(--s1); }
 .muted { color: var(--ink-2); }
 .small { font-size: 0.88rem; }
-.card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin: 18px 0; }
+/* glass */
+.glass, .card, .tile, .step, .panel, figure, details table {
+  background: var(--glass); border: 1px solid var(--glass-border); border-radius: 18px;
+  box-shadow: var(--glass-shadow); -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%); }
+.card, .panel { padding: 20px 22px; margin: 18px 0; }
 .key { border-left: 4px solid var(--s1); }
-/* stat tiles */
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 18px 0; }
-.tile { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
-.tile .num { font-size: 1.9rem; font-weight: 700; line-height: 1.1; }
+/* hero */
+header { padding: 64px 0 8px; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: var(--ink-2);
+  padding: 6px 12px; border-radius: 999px; margin-bottom: 18px; }
+.eyebrow svg { width: 16px; height: 16px; }
+.authors { color: var(--ink-2); margin: 0 0 18px; }
+.lede { font-size: 1.15rem; color: var(--ink-2); max-width: 720px; }
+.links { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+.btn { display: inline-block; padding: 9px 16px; border-radius: 999px; font-weight: 600; text-decoration: none;
+  background: var(--glass-strong); border: 1px solid var(--glass-border); color: var(--ink); box-shadow: var(--glass-shadow); }
+.btn.primary { background: var(--s1); color: #fff; border-color: transparent; }
+/* the lens */
+.stage { position: relative; margin: 28px 0 6px; padding: 26px 28px; cursor: none; touch-action: pan-y;
+  user-select: none; -webkit-user-select: none; overflow: hidden; }
+.stage .layer { margin: 0; font-size: 1.12rem; line-height: 1.75; }
+.stage .reveal { position: absolute; inset: 0; padding: 26px 28px; pointer-events: none;
+  transform-origin: var(--x, 30%) var(--y, 40%); transform: scale(var(--zoom, 1.18));
+  clip-path: circle(calc(var(--r, 78px) / var(--zoom, 1.18)) at var(--x, 30%) var(--y, 40%)); }
+.stage .reveal mark { background: var(--mark); color: inherit; border-radius: 4px; box-shadow: 0 2px 0 var(--edit); }
+.lens { position: absolute; width: calc(2 * var(--r, 78px)); height: calc(2 * var(--r, 78px)); border-radius: 50%;
+  left: calc(var(--x, 30%) - var(--r, 78px)); top: calc(var(--y, 40%) - var(--r, 78px)); pointer-events: none;
+  border: 3px solid var(--lens-ring);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18), inset 0 0 0 1px rgba(0, 0, 0, 0.06), inset 0 -10px 24px rgba(255, 255, 255, 0.25); }
+.lens::after { content: ""; position: absolute; width: 14px; height: 54px; border-radius: 7px; background: var(--ink-2);
+  right: -14px; bottom: -44px; transform: rotate(-45deg); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
+.lens-hint { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 0.85rem; color: var(--ink-3); }
+.lens-hint .key-sw { display: inline-block; width: 22px; height: 10px; border-radius: 3px; background: var(--mark);
+  box-shadow: 0 2px 0 var(--edit); vertical-align: 0; margin-right: 6px; }
+/* tiles, steps */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin: 22px 0; }
+.tile { padding: 16px 18px; }
+.tile .num { font-size: 2rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; }
 .tile .lab { color: var(--ink-2); font-size: 0.9rem; }
-/* pipeline */
-.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; }
-.step { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 18px 0; }
+.step { padding: 16px 18px; }
 .step b { display: block; margin-bottom: 4px; }
-.step .n { color: var(--ink-3); font-weight: 700; font-size: 0.85rem; }
+.step .n { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; margin-bottom: 8px;
+  background: var(--glass-strong); border: 1px solid var(--glass-border); font-weight: 700; font-size: 0.85rem; }
 /* demo */
 .doc { display: grid; gap: 7px; margin: 14px 0; }
 .line { height: 12px; border-radius: 6px; background: var(--human); transition: background .25s; }
 .line.ai { background: var(--edit); }
 .controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 input[type=range] { flex: 1 1 220px; accent-color: var(--s1); }
-button { font: inherit; font-size: 0.9rem; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border);
-  background: var(--surface); color: var(--ink); cursor: pointer; }
+button { font: inherit; font-size: 0.9rem; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--glass-border);
+  background: var(--glass-strong); color: var(--ink); cursor: pointer; box-shadow: var(--glass-shadow); }
 .meter { height: 14px; background: var(--grid); border-radius: 7px; overflow: hidden; position: relative; }
 .meter .fill { height: 100%; background: var(--s1); border-radius: 7px; transition: width .3s; }
 .meter .null { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink-2); }
 .example { font-size: 0.97rem; }
 .example .h { color: var(--ink-2); }
-.example mark { background: none; color: var(--edit); font-weight: 600; }
+.example mark { background: var(--mark); color: inherit; border-radius: 3px; }
 /* charts */
 .chart { width: 100%; height: auto; display: block; }
-.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.88rem; color: var(--ink-2); margin: 6px 0 2px; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.88rem; color: var(--ink-2); margin: 0 0 6px; }
 .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .sw.line-sw { height: 3px; border-radius: 2px; vertical-align: 3px; width: 16px; }
 .sw.dash { height: 0; border-top: 2px dashed var(--ink-2); background: none; width: 16px; vertical-align: 3px; border-radius: 0; }
-#tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--surface); font-size: 0.82rem;
-  padding: 6px 9px; border-radius: 6px; opacity: 0; transition: opacity .1s; z-index: 10; max-width: 260px; }
-details { margin: 6px 0 0; font-size: 0.88rem; color: var(--ink-2); }
+#tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 0.82rem;
+  padding: 6px 9px; border-radius: 8px; opacity: 0; transition: opacity .1s; z-index: 10; max-width: 260px; }
+details { margin: 8px 0 0; font-size: 0.88rem; color: var(--ink-2); }
 summary { cursor: pointer; }
-table { border-collapse: collapse; width: 100%; font-size: 0.86rem; margin-top: 8px; }
+details table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.86rem; margin-top: 8px; padding: 6px 10px; }
 th, td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--border); }
 th:first-child, td:first-child { text-align: left; }
-figure { margin: 18px 0; }
-figure img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border); background: #fff; }
-figcaption { font-size: 0.88rem; color: var(--ink-2); margin-top: 8px; }
-footer { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--ink-2); font-size: 0.9rem; }
-.theme-toggle { position: fixed; top: 12px; right: 12px; }
-@media (max-width: 560px) { h1 { font-size: 1.75rem; } body { font-size: 16px; } }
+figure { margin: 18px 0; padding: 14px; }
+figure img { width: 100%; height: auto; border-radius: 10px; background: #fff; display: block; }
+figcaption { font-size: 0.88rem; color: var(--ink-2); margin-top: 10px; }
+footer { margin-top: 64px; padding: 18px 22px; color: var(--ink-2); font-size: 0.9rem; }
+.theme-toggle { position: fixed; top: 12px; right: 12px; z-index: 5; width: 40px; height: 40px; padding: 0; }
+@media (max-width: 560px) { h1 { font-size: 1.9rem; } body { font-size: 16px; } .stage { padding: 18px; }
+  .stage .reveal { padding: 18px; } .stage .layer { font-size: 1.02rem; } }
+@media (prefers-reduced-motion: reduce) { .line, .meter .fill { transition: none; } }
 </style>
 </head>
 <body>
@@ -97,12 +149,20 @@ footer { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--border
 <main>
 
 <header>
+  <div class="eyebrow glass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>STAT 236 · Harvard · Fall 2026</div>
   <h1>Detecting AI Edits in Human Text</h1>
-  <p class="authors">Ege Çakar, Rui Huang, Duy Thuc Nguyen · STAT 236, Harvard University, Fall 2026</p>
+  <p class="authors">Ege Çakar, Rui Huang, Duy Thuc Nguyen</p>
   <p class="lede">Most AI-assisted writing is a human draft with a few sentences polished by a model. We treat those
     edited sentences as a <b>sparse signal</b> hidden among human ones, and test each document with
     <b>Higher Criticism</b> on per-sentence p-values that are exactly valid for any detector.</p>
-  <div class="links"><a href="assets/report.pdf">Read the report (PDF)</a><a href="#results">Jump to results</a></div>
+  <div class="stage glass" id="stage" aria-label="Interactive example: a paragraph in which two sentences were edited by AI">
+    <p class="layer base">The paper studies how graph structure affects message passing in deep networks. <span class="hit">The goal of this work is clearly articulated through well-formulated research questions.</span> The experiments cover three benchmark datasets and two baselines. However, the ablation section is short and does not separate the two proposed components. <span class="hit">Furthermore, a more thorough discussion of computational overhead would substantially strengthen the empirical evaluation.</span> I would also like to see results on larger graphs.</p>
+    <p class="layer reveal" aria-hidden="true">The paper studies how graph structure affects message passing in deep networks. <mark>The goal of this work is clearly articulated through well-formulated research questions.</mark> The experiments cover three benchmark datasets and two baselines. However, the ablation section is short and does not separate the two proposed components. <mark>Furthermore, a more thorough discussion of computational overhead would substantially strengthen the empirical evaluation.</mark> I would also like to see results on larger graphs.</p>
+    <div class="lens" aria-hidden="true"></div>
+  </div>
+  <div class="lens-hint"><span>Move the lens over the text. To the eye, nothing stands out.</span>
+    <span><span class="key-sw"></span>AI-edited (illustration; sentence 2 is a real GPT-6 Luna edit)</span></div>
+  <div class="links"><a class="btn primary" href="assets/report.pdf">Read the report (PDF)</a><a class="btn" href="#results">Jump to results</a></div>
 </header>
 
 <div class="tiles">
@@ -162,25 +222,31 @@ detector + Higher Criticism flags such documents (measured on real test document
 <h3>1 · Sentence level: fine-tuning on edits matters most</h3>
 <p class="muted small">Share of edited test sentences detected at a 1% false-positive rate. Qwen 3.5 is a held-out
 editor that no detector we trained ever saw.</p>
+<div class="panel">
 <div class="legend"><span><span class="sw" style="background:var(--s1)"></span>Training editors</span><span><span class="sw" style="background:var(--s2)"></span>Held-out editor (Qwen)</span><span><span class="sw dash"></span>1%: chance</span></div>
 <svg class="chart" id="c-sentence" role="img" aria-label="Bar chart of sentence-level detection rates"></svg>
 <details><summary>Data table</summary><div id="t-sentence"></div></details>
+</div>
 
 <h3>2 · Correcting for correlation restores the false-positive rate</h3>
 <p class="muted small">How often HC flags one of 1,301 fully human test documents (target: 5%), with textbook
 independent-sentence cutoffs and with our correlated cutoffs.</p>
+<div class="panel">
 <div class="legend"><span><span class="sw" style="background:var(--s2)"></span>Independent cutoffs</span><span><span class="sw" style="background:var(--s1)"></span>Correlated cutoffs</span><span><span class="sw dash"></span>5% target</span></div>
 <svg class="chart" id="c-type1" role="img" aria-label="Bar chart of false-positive rates on human documents"></svg>
 <details><summary>Data table</summary><div id="t-type1"></div></details>
+</div>
 
 <h3>3 · Document level: detection fades as edits get sparser</h3>
 <p class="muted small">Share of edited whole test documents (16+ sentences) flagged, as edits become rarer. At θ = 0.1
 about 65% of sentences are edited; at θ = 0.9 a 16-sentence document has one.</p>
+<div class="panel">
 <div class="legend" id="lg-power"></div>
 <svg class="chart" id="c-power" role="img" aria-label="Line chart of document detection rate against sparsity"></svg>
 <details><summary>Data table</summary><div id="t-power"></div></details>
 <p class="small muted" style="margin-top:8px">Zero-shot detectors (Binoculars, Fast-DetectGPT, log-likelihood) flag at
   most 13% of documents even at θ = 0.1, against about 5% for human documents.</p>
+</div>
 
 <h3>4 · Against the theory</h3>
 <figure>
@@ -213,7 +279,7 @@ text, but learn to <b>prefer the AI-edited version</b> of a sentence over its hu
 (Δ = +0.38 nats per token vs. −0.03 for repeated human text). Down-weighting edited sentences by how much they were
 changed removes only about 10% of that shift.</p>
 
-<footer>
+<footer class="glass">
   <p>Data: 313,249 human sentences from eight sources written in 2020 or earlier (web pages, papers, school and learner
     essays, news, peer reviews, emails, fiction), each edited by six language models under two prompts.
     Full methods, tables and references in the <a href="assets/report.pdf">report</a>.</p>
@@ -359,6 +425,43 @@ table("t-type1", ["Detector", "Independent cutoffs", "Correlated cutoffs"], TYPE
     root.dataset.theme = dark ? "light" : "dark";
     try { localStorage.setItem("theme", root.dataset.theme); } catch (e) {}
   });
+})();
+
+// Magnifying lens: reveals and enlarges the AI-edited sentences under it.
+(function lens() {
+  const stage = document.getElementById("stage");
+  if (!stage) return;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const set = (x, y) => { stage.style.setProperty("--x", x + "px"); stage.style.setProperty("--y", y + "px"); };
+  const marks = () => [...stage.querySelectorAll(".base .hit")];
+  // center of an edited sentence, measured in the unzoomed base layer (first line of it, up to 160px wide)
+  function markCenter(m) {
+    const r = m.getClientRects()[0], st = stage.getBoundingClientRect();
+    return [r.left - st.left + Math.min(r.width, 160) / 2, r.top - st.top + r.height / 2];
+  }
+  let user = false, t0 = performance.now();
+  stage.addEventListener("pointermove", e => {
+    user = true; const r = stage.getBoundingClientRect(); set(e.clientX - r.left, e.clientY - r.top);
+  });
+  stage.addEventListener("pointerleave", () => { user = false; t0 = performance.now(); });
+  // start over the first edit
+  const first = marks()[0];
+  if (first) { const [x, y] = markCenter(first); set(x, y); }
+  if (reduce) return;
+  // idle: drift slowly between the edited sentences
+  let target = 0, pos = null;
+  function tick(now) {
+    if (!user) {
+      const ms = marks(); if (!ms.length) return;
+      if (now - t0 > 3200) { target = (target + 1) % ms.length; t0 = now; }
+      const cur = [parseFloat(stage.style.getPropertyValue("--x")), parseFloat(stage.style.getPropertyValue("--y"))];
+      const [tx, ty] = markCenter(ms[target]);
+      pos = [cur[0] + (tx - cur[0]) * 0.06, cur[1] + (ty - cur[1]) * 0.06];
+      set(pos[0], pos[1]);
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 })();
 </script>
 </body>

@@ -159,9 +159,7 @@ footer { margin-top: 64px; padding: 18px 22px; color: var(--ink-2); font-size: 0
 @media (max-width: 560px) { h1 { font-size: 1.9rem; } body { font-size: 16px; } .stage .layer { padding: 18px; } .stage .layer { font-size: 1.02rem; } }
 .margin-anim { position: fixed; top: 50%; transform: translateY(-50%); width: 168px; padding: 14px; z-index: 0; display: none; pointer-events: none; }
 .margin-anim canvas { width: 140px; height: 360px; display: block; position: relative; z-index: 1; }
-.margin-anim .cap { position: relative; z-index: 1; font-size: 0.72rem; color: var(--ink-3); text-align: center; margin-top: 6px; }
 .margin-anim.left { left: max(12px, calc(50% - 450px - 196px)); }
-.margin-anim.right { right: max(12px, calc(50% - 450px - 196px)); }
 @media (min-width: 1270px) { .margin-anim { display: block; } }
 @media (prefers-reduced-motion: reduce) { .line, .meter .fill { transition: none; } }
 </style>
@@ -169,8 +167,7 @@ footer { margin-top: 64px; padding: 18px 22px; color: var(--ink-2); font-size: 0
 <body>
 <button class="theme-toggle" id="theme" aria-label="Toggle dark mode">◐</button>
 <div id="tip" role="tooltip"></div>
-<div class="margin-anim left" aria-hidden="true"><canvas data-seed="7"></canvas><div class="cap">generate → edit → hide</div></div>
-<div class="margin-anim right" aria-hidden="true"><canvas data-seed="23"></canvas><div class="cap">deleted · inserted · replaced</div></div>
+<div class="margin-anim left" aria-hidden="true"><canvas data-seed="7"></canvas></div>
 <main>
 
 <header>

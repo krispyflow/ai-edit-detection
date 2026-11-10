@@ -493,7 +493,7 @@ table("t-type1", ["Detector", "Independent cutoffs", "Correlated cutoffs"], TYPE
   const canvases = [...document.querySelectorAll(".margin-anim canvas")];
   if (!canvases.length) return;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const W = 200, H = 520, LINES = 15, LH = 33, BAR = 12, GAP = 10, X0 = 2;
+  const W = 200, H = 520, LINES = 10, LH = 50, BAR = 12, GAP = 5, X0 = 2;
   const COL = {del: [227, 73, 72], ins: [176, 150, 245], rep: [237, 161, 0]};   // red, light purple, amber
   const rnd = seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const clamp = v => Math.max(0, Math.min(1, v)), ease = v => v * v * (3 - 2 * v);
@@ -525,7 +525,7 @@ table("t-type1", ["Detector", "Independent cutoffs", "Correlated cutoffs"], TYPE
   function neutral() {
     const dark = document.documentElement.dataset.theme === "dark" ||
       (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
-    return dark ? [255, 255, 255, 0.24] : [20, 30, 60, 0.16];
+    return dark ? [255, 255, 255, 0.15] : [20, 30, 60, 0.10];
   }
   function draw({ctx, sc}, tau) {
     const n = neutral(); ctx.clearRect(0, 0, W, H);

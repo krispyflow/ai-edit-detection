@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Detecting AI Edits in Human Text</title>
-<meta name="description" content="STAT 236 project: detecting a few AI-edited sentences in human documents with Higher Criticism on conformal p-values.">
+<title>Who Touched My Sentence?</title>
+<meta name="description" content="Who Touched My Sentence? Inference for AI-edited documents in the sparse and weak regime: Higher Criticism on conformal sentence p-values.">
 <style>
 :root {
   color-scheme: light;
@@ -55,7 +55,8 @@ body::before { content: ""; position: fixed; inset: -10vmax; z-index: -1; pointe
     radial-gradient(34vmax 34vmax at 92% 22%, var(--blob2), transparent 70%),
     radial-gradient(40vmax 40vmax at 50% 105%, var(--blob3), transparent 70%); }
 main { max-width: 900px; margin: 0 auto; padding: 0 16px 64px; }
-h1 { font-size: 2.6rem; line-height: 1.1; margin: 0 0 12px; letter-spacing: -0.02em; }
+h1 { font-size: 2.8rem; line-height: 1.1; margin: 0 0 8px; letter-spacing: -0.02em; }
+.subtitle { font-size: 1.3rem; font-weight: 600; color: var(--ink-2); margin: 0 0 14px; line-height: 1.3; }
 h2 { font-size: 1.5rem; margin: 64px 0 10px; letter-spacing: -0.01em; }
 h3 { font-size: 1.08rem; margin: 30px 0 6px; }
 p { margin: 0 0 14px; }
@@ -171,8 +172,9 @@ footer { margin-top: 64px; padding: 18px 22px; color: var(--ink-2); font-size: 0
 <main>
 
 <header>
-  <div class="eyebrow glass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>STAT 236 · Harvard · Fall 2026</div>
-  <h1>Detecting AI Edits in Human Text</h1>
+  <div class="eyebrow glass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>Harvard University · Fall 2026</div>
+  <h1>Who Touched My Sentence?</h1>
+  <p class="subtitle">Inference for AI-Edited Documents in the Sparse and Weak Regime</p>
   <p class="authors">Ege Çakar, Rui Huang, Duy Thuc Nguyen</p>
   <p class="lede">Most AI-assisted writing is a human draft with a few sentences polished by a model. We treat those
     edited sentences as a <b>sparse signal</b> hidden among human ones, and test each document with
@@ -305,7 +307,7 @@ changed removes only about 10% of that shift.</p>
   <p>Data: 313,249 human sentences from eight sources written in 2020 or earlier (web pages, papers, school and learner
     essays, news, peer reviews, emails, fiction), each edited by six language models under two prompts.
     Full methods, tables and references in the <a href="assets/report.pdf">report</a>.</p>
-  <p>STAT 236 · Fall 2026</p>
+  <p>Harvard University · Fall 2026</p>
 </footer>
 </main>
 
